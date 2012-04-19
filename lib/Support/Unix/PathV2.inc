@@ -511,6 +511,25 @@ error_code get_magic(const Twine &path, uint32_t len,
   return error_code::success();
 }
 
+std::vector<std::string> GetArgvAsUTF8(int argc, const char** argv)
+{
+  std::vector<std::string> utf8_argv;
+  for (int i = 0; i != argc; ++i)
+    utf8_argv.push_back(argv[i]);
+
+  return utf8_argv;
+}
+
+int Open(const char* path, int flags)
+{
+  return ::open(path, flags);
+}
+
+int Stat(const char* path, struct stat *StatBuf)
+{
+  return ::stat(path, StatBuf);
+}
+
 } // end namespace fs
 } // end namespace sys
 } // end namespace llvm

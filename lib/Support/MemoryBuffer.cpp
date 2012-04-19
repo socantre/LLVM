@@ -17,6 +17,7 @@
 #include "llvm/Config/config.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/Errno.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/Program.h"
@@ -218,7 +219,7 @@ error_code MemoryBuffer::getFile(const char *Filename,
 #ifdef O_BINARY
   OpenFlags |= O_BINARY;  // Open input file in binary mode on win32.
 #endif
-  int FD = ::open(Filename, OpenFlags);
+  int FD = llvm::sys::fs::Open(Filename, OpenFlags);
   if (FD == -1)
     return error_code(errno, posix_category());
 

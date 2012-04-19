@@ -17,6 +17,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Windows.h"
+#include <ShellAPI.h>
 #include <fcntl.h>
 #include <io.h>
 #include <sys/stat.h>
@@ -741,6 +742,55 @@ error_code detail::directory_iterator_increment(detail::DirIterState &it) {
 
   it.CurrentEntry.replace_filename(Twine(directory_entry_path_utf8));
   return error_code::success();
+}
+
+std::vector<std::string> GetArgvAsUTF8(int argc, const char**)
+{
+  wchar_t** wargv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
+
+  std::vector<std::string> utf8_argv;
+
+  for (int i = 0; i != argc; ++i)
+  {
+    // check length
+    int len = ::WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1,
+                                    NULL, 0, NULL, NULL);
+    assert(len != 0);
+
+    // allocate enough space to use it as a buffer
+    std::string arg(len, ' ');
+
+    // do the conversion
+    len = ::WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1,
+                                &arg[0], len, NULL, NULL);
+    assert(len != 0);
+
+    utf8_argv.push_back(arg);
+  }
+
+  ::LocalFree(wargv);
+
+  return utf8_argv;
+}
+
+int Open(const char* path, int flags)
+{
+  SmallVector<wchar_t, 128> utf16;
+  error_code ec = UTF8ToUTF16(path, utf16);
+  assert(ec == success);
+  return ::_wopen(utf16.begin(), flags);
+}
+
+int Stat(const char* path, struct stat *StatBuf)
+{
+  // unfortunately ::_wstat uses _stat64i32 instead of stat,
+  // but these two structures should be identical
+  assert(sizeof(struct stat) == sizeof(struct _stat64i32));
+
+  SmallVector<wchar_t, 128> utf16;
+  error_code ec = UTF8ToUTF16(path, utf16);
+  assert(ec == success);
+  return ::_wstat(utf16.begin(), reinterpret_cast<struct _stat64i32*>(StatBuf));
 }
 
 } // end namespace fs

@@ -506,6 +506,32 @@ error_code FindLibrary(const Twine &short_name, SmallVectorImpl<char> &result);
 error_code GetMainExecutable(const char *argv0, void *MainAddr,
                              SmallVectorImpl<char> &result);
 
+/// @brief Convert argv to vector of UTF8 strings.
+///
+/// @param argc Number of arguments in argv.
+/// @param argv Array of command line arguments to convert (parameter is ignored
+///             on Windows and a call to GetCommandLine is used instead).
+/// @results vector of UTF8 command line arguments.
+std::vector<std::string> GetArgvAsUTF8(int argc, const char** argv);
+
+/// @brief Open a file.
+///
+/// @param path Input path.
+/// @param flags File access modes.
+/// @results File descriptor if the file has been successfully opened,
+///          -1 otherwise.
+int Open(const char* path, int flags);
+
+/// @brief Get status information on a file.
+///
+/// @param path Input path.
+/// @param StatBuf Pointer to structure that stores results.
+/// @results 0 if the file-status information has been successfully obtained,
+///          -1 otherwise.
+int Stat(const char* path, struct stat *StatBuf);
+
+
+
 /// @}
 /// @name Iterators
 /// @{
